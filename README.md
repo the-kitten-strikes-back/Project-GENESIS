@@ -1,0 +1,71 @@
+# Project GENESIS
+
+Project GENESIS is a digital life simulator where organisms:
+- evolve through mutation and speciation
+- compete for limited resources
+- learn from outcomes during their own lifetime
+
+The result is a dynamic ecosystem where species can rise, dominate, and go extinct.
+
+## Features
+
+- Mutation and speciation
+- Context-aware evolving brains (state-dependent reinforcement learning)
+- Survival pressure (metabolism, age, scarcity)
+- Predator/prey trophic layers with hunting dynamics
+- Environmental adaptation (temperature bands + terrain roughness)
+- Ecosystem resource regrowth and carrying capacity
+- Learning policy per organism (brain-level reward shaping)
+- Live visualization of world + species/population trends (Matplotlib and Pygame)
+
+## Architecture
+
+```text
+src/genesis/
+  config.py         # Typed simulation settings
+  genetics.py       # Genome model, mutation, genomic distance, adaptation traits
+  organism.py       # Agent state + context-aware brain decision system
+  ecosystem.py      # Food grid + temperature and terrain environment maps
+  simulation.py     # Core engine (trophic interactions, adaptation, evolution)
+  visualization.py  # Matplotlib animation and stats panel
+  pygame_visualization.py  # Real-time pygame loop + HUD
+  cli.py            # Command-line entrypoint
+```
+
+## Quickstart
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+python -m genesis --headless --steps 600 --initial-species 6
+```
+
+For live visualization, install the optional visualization dependency:
+
+```bash
+pip install -e ".[viz]"
+python -m genesis --steps 2000 --population 160 --initial-species 8 --regrowth 45
+```
+
+For a real-time pygame simulation window:
+
+```bash
+pip install -e ".[pygame]"
+python -m genesis --pygame --steps 3000 --fps 60 --cell-size 10
+```
+
+Or use the console script:
+
+```bash
+genesis --headless --steps 1000 --report-every 50
+```
+
+## Tuning ideas
+
+- Increase `--regrowth` to reduce extinction pressure.
+- Increase `--population` to create faster competition.
+- Change `mutation_rate`, `mutation_strength`, and `speciation_threshold` in `SimulationConfig` for deeper evolutionary dynamics.
+- Tune `predator_diet_threshold`, `hunt_efficiency`, `temperature_stress_scale`, and `terrain_drag_scale` for different ecosystem regimes.
+- For overshoot/crash during early ticks, tune `startup_stabilization_ticks`, `startup_regrowth_boost`, `startup_hunt_suppression`, `startup_reproduction_ramp`, and `max_birth_fraction_per_tick`.
+- To prevent permanent predator extinction, tune `predator_extinction_trigger_ticks`, `predator_recovery_cooldown`, `predator_recovery_min_prey_extinction`, and `predator_recovery_batch_size`.

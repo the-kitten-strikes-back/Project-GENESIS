@@ -1,0 +1,6 @@
+
+[pygame]
+pygame>=2.6
+
+[viz]
+matplotlib>=3.8
