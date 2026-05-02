@@ -151,7 +151,7 @@ class Simulation:
             org.energy -= (
                 0.18
                 + 0.16 * org.genome.metabolism
-                + 0.05 * org.genome.diet
+                + 0.02 * org.genome.diet
                 + self.cfg.temperature_stress_scale * climate_stress * 0.18
                 + terrain_stress * 0.06
                 + trophic_stress
@@ -232,13 +232,15 @@ class Simulation:
             ]
             if candidates:
                 target = self.rng.choice(candidates)
-                hunt_power = 0.8 + 1.6 * org.genome.aggression + 0.8 * org.genome.speed + org.genome.diet
-                evade_power = 0.8 + target.genome.speed + 0.6 * target.genome.vision
-                hunt_power *= 0.6 + habitat_quality
+                # Speed-based success: faster predator has advantage
+                base_success = org.genome.speed / (org.genome.speed + target.genome.speed)
+                # Aggression and vision provide tactical advantage
+                tactical_bonus = 0.1 * (org.genome.aggression - 0.3 * target.genome.vision / 12.0)
+                habitat_modifier = 0.6 + habitat_quality
                 startup_hunt_scale = self.cfg.startup_hunt_suppression + (
                     1.0 - self.cfg.startup_hunt_suppression
                 ) * startup_progress
-                chance = (hunt_power / (hunt_power + evade_power)) * startup_hunt_scale
+                chance = min(0.95, max(0.05, (base_success + tactical_bonus) * habitat_modifier * startup_hunt_scale))
                 if self.rng.random() < chance:
                     transfer = max(0.0, target.energy * (0.35 + 0.35 * org.genome.diet))
                     target.energy -= transfer
@@ -247,11 +249,11 @@ class Simulation:
                         target.alive = False
                         deaths += 1
                 else:
-                    org.energy -= 0.45
+                    org.energy -= 0.25
             else:
-                org.energy -= 0.35
+                org.energy -= 0.25
         else:
-            org.energy += 0.1
+            org.energy += 0.15
         return deaths
 
     def _apply_recovery_seed(self) -> None:

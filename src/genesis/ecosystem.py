@@ -23,24 +23,48 @@ class Ecosystem:
         self._build_environment_maps()
 
     def _build_environment_maps(self) -> None:
+        """Build 4 distinct quadrant ecosystems with different characteristics."""
+        mid_x = self.width / 2.0
+        mid_y = self.height / 2.0
+        
         for y in range(self.height):
             for x in range(self.width):
                 i = self.idx(x, y)
-                latitude = y / max(1, self.height - 1)
-                climate_wave = 0.1 * math.sin((x / max(1, self.width)) * math.tau)
-                temperature = 0.15 + 0.75 * (1.0 - abs(0.5 - latitude) * 2.0) + climate_wave
+                
+                # Determine quadrant (0=top-left, 1=top-right, 2=bottom-left, 3=bottom-right)
+                quadrant = (0 if x < mid_x else 1) + (0 if y < mid_y else 2)
+                
+                # Local coordinates within quadrant (0 to 1)
+                local_x = (x % (self.width // 2)) / max(1, self.width // 2 - 1)
+                local_y = (y % (self.height // 2)) / max(1, self.height // 2 - 1)
+                
+                # Quadrant 0 (Top-Left): Arctic - Brutally cold, rocky, barely habitable
+                if quadrant == 0:
+                    temperature = 0.05 + 0.08 * math.sin(local_x * math.tau) + 0.02 * math.cos(local_y * math.tau)
+                    terrain = 0.80 + 0.18 * math.sin(local_x * math.tau * 2.5) + 0.02 * math.cos(local_y * math.tau * 1.8)
+                
+                # Quadrant 1 (Top-Right): Desert - Scorching hot, uniform sand, arid wasteland
+                elif quadrant == 1:
+                    temperature = 0.85 + 0.12 * math.sin(local_x * math.tau) + 0.03 * math.cos(local_y * math.tau)
+                    terrain = 0.20 + 0.12 * math.sin(local_x * math.tau * 1.5) + 0.08 * math.cos(local_y * math.tau * 1.2)
+                
+                # Quadrant 2 (Bottom-Left): Temperate Forest - Mild, moderate terrain, fertile
+                elif quadrant == 2:
+                    temperature = 0.45 + 0.15 * math.sin(local_x * math.tau * 1.3) + 0.12 * math.cos(local_y * math.tau * 1.5)
+                    terrain = 0.45 + 0.2 * math.sin(local_x * math.tau * 2.0) + 0.15 * math.cos(local_y * math.tau * 1.8)
+                
+                # Quadrant 3 (Bottom-Right): Tropical Jungle - Hot, lush, very fertile
+                else:  # quadrant == 3
+                    temperature = 0.75 + 0.12 * math.sin(local_x * math.tau * 0.8) + 0.1 * math.cos(local_y * math.tau * 1.1)
+                    terrain = 0.35 + 0.2 * math.sin(local_x * math.tau * 2.2) + 0.15 * math.cos(local_y * math.tau * 1.9)
+                
                 temperature = max(0.0, min(1.0, temperature))
-
-                terrain_raw = (
-                    0.5
-                    + 0.25 * math.sin((x / max(1, self.width)) * math.tau * 2.1)
-                    + 0.25 * math.cos((y / max(1, self.height)) * math.tau * 1.7)
-                )
-                terrain = max(0.0, min(1.0, terrain_raw))
-
+                terrain = max(0.0, min(1.0, terrain))
+                
+                # Fertility peaks at 0.55°C and decreases with roughness
                 fertility = 1.05 - abs(temperature - 0.55) * 1.35 - terrain * 0.45
                 fertility = max(0.05, min(1.0, fertility))
-
+                
                 self.temperature_map[i] = temperature
                 self.terrain_map[i] = terrain
                 self.fertility_map[i] = fertility
